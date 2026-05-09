@@ -28,6 +28,11 @@ pub trait OutputModule {
     fn track_changed(&mut self, _track: &TrackInfo, _deck: usize) {}
     fn track_changed_master(&mut self, _track: &TrackInfo) {}
 
+    // Fired whenever the ANLZ file path for a deck changes. Downstream consumers
+    // (e.g. waveform renderers) need this to know which analysis file to load.
+    fn anlz_path_changed(&mut self, _path: &str, _deck: usize) {}
+    fn anlz_path_changed_master(&mut self, _path: &str) {}
+
     fn phrase_changed(&mut self, _phrase: &str, _deck: usize) {}
     fn phrase_changed_master(&mut self, _phrase: &str) {}
 

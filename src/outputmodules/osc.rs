@@ -273,6 +273,14 @@ impl OutputModule for Osc {
         self.send_string("/master/track/album", &track.album);
     }
 
+    fn anlz_path_changed(&mut self, path: &str, deck: usize) {
+        self.send_string(&format!("/{deck}/track/anlz_path"), path);
+    }
+
+    fn anlz_path_changed_master(&mut self, path: &str) {
+        self.send_string("/master/track/anlz_path", path);
+    }
+
     fn slow_update(&mut self) {
         if !self.info_sent {
             self.info_sent = true;

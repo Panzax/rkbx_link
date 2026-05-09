@@ -421,6 +421,7 @@ impl BeatKeeper {
 
 
         let mut masterdeck_track_changed = false;
+        let mut masterdeck_anlz_changed = false;
 
         if slow_update {
             for (i, track) in rb.get_track_infos()?.into_iter().enumerate() {
@@ -467,6 +468,12 @@ impl BeatKeeper {
                         }
 
                         self.anlz_paths[i].set(path);
+
+                        // Notify output modules so consumers (e.g. rkbx_wave) can load the new analysis file.
+                        for module in &mut self.running_modules {
+                            module.anlz_path_changed(&self.anlz_paths[i].value, i);
+                        }
+                        masterdeck_anlz_changed |= self.masterdeck_index.value == i;
 
                         // Only watch if the new path is not empty
                         if !self.anlz_paths[i].value.is_empty() {
@@ -541,6 +548,13 @@ impl BeatKeeper {
                 .debug(&format!("Master track changed: {track:?}"));
             for module in &mut self.running_modules {
                 module.track_changed_master(track);
+            }
+        }
+
+        if masterdeck_index_changed || masterdeck_anlz_changed {
+            let path = &self.anlz_paths[self.masterdeck_index.value].value;
+            for module in &mut self.running_modules {
+                module.anlz_path_changed_master(path);
             }
         }
 
