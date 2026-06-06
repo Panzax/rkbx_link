@@ -307,9 +307,7 @@ impl BeatKeeper {
     ) -> Result<(), MemoryReadError> {
         // let masterdeck_index_changed = self.masterdeck_index.set(td.masterdeck_index as usize);
         let masterdeck_index_changed = self.masterdeck_index.set(rb.read_masterdeck_index()?);
-        if self.masterdeck_index.value >= rb.deckcount {
-            return Ok(()); // No master deck selected - rekordbox is not initialised
-        }
+        let has_masterdeck = self.masterdeck_index.value < rb.deckcount;
 
         // let mut tracker_data = None;
 
@@ -322,7 +320,7 @@ impl BeatKeeper {
             .zip(self.td_trackers[0..self.decks].iter_mut())
             .enumerate()
         {
-            let is_master = i == self.masterdeck_index.value;
+            let is_master = has_masterdeck && i == self.masterdeck_index.value;
             if is_master | self.keep_warm {
                 let res =
                     tracker.update(rb, self.offset_samples, i);
@@ -542,7 +540,7 @@ impl BeatKeeper {
             }
         }
 
-        if masterdeck_index_changed || masterdeck_track_changed {
+        if has_masterdeck && (masterdeck_index_changed || masterdeck_track_changed) {
             let track = &self.track_infos[self.masterdeck_index.value].value;
             self.logger
                 .debug(&format!("Master track changed: {track:?}"));
@@ -551,7 +549,7 @@ impl BeatKeeper {
             }
         }
 
-        if masterdeck_index_changed || masterdeck_anlz_changed {
+        if has_masterdeck && (masterdeck_index_changed || masterdeck_anlz_changed) {
             let path = &self.anlz_paths[self.masterdeck_index.value].value;
             for module in &mut self.running_modules {
                 module.anlz_path_changed_master(path);
